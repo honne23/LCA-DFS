@@ -4,13 +4,11 @@ import (
 	"sync"
 )
 
-/**
-* Travel down the tree, remember parents, find matching subtree for second employee
- */
-
-func FindCommonManger(root Manager, e1 Member, e2 Member) Manager {
+//FindCommonManager will travel down the tree in parallel, cache parents, then find a matching lowest common manager.
+func FindCommonManager(root Manager, e1 Member, e2 Member) Manager {
 	wg := sync.WaitGroup{}
 	results := make([]map[int][]*Manager, 2)
+	// Search for both sub-trees in concurrently
 	wg.Add(1)
 	go func() {
 		// Only reads so no race-conditions
@@ -46,7 +44,7 @@ func FindCommonManger(root Manager, e1 Member, e2 Member) Manager {
 
 }
 
-// Root node = ceo
+//findByIdDFS Uses a depth first search algorithm to discover all the managers of a given node
 func findByIdDFS(node *Manager, id string, currentDepth int, parents map[int][]*Manager) map[int][]*Manager {
 
 	for _, child := range node.GetEmployees() {
@@ -69,6 +67,7 @@ func findByIdDFS(node *Manager, id string, currentDepth int, parents map[int][]*
 			}
 			return findByIdDFS(child, id, currentDepth+1, parents)
 		default:
+			// In case a child is a leaf node, do not explore them
 			continue
 
 		}
@@ -77,6 +76,7 @@ func findByIdDFS(node *Manager, id string, currentDepth int, parents map[int][]*
 	return nil
 }
 
+//contains is a util function to check if a particular Manager is contained in a slice of Managers
 func contains(reports []*Manager, target Manager) bool {
 	for _, manager := range reports {
 		if (*manager).GetID() == target.GetID() {

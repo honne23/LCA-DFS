@@ -37,7 +37,7 @@ func main() {
 	log.Printf("juniorDev1: %s\n\n\n\n", juniorDev1.GetID())
 	log.Printf("juniorDe2: %s\n\n\n\n", juniorDev2.GetID())
 
-	common := directory.FindCommonManger(ceo, &juniorDev1, &juniorDev2)
+	common := directory.FindCommonManager(ceo, &juniorDev1, &juniorDev2)
 	log.Printf("Common manager: %s", common.GetID())
 
 }
