@@ -2,44 +2,11 @@ package directory
 
 import (
 	"sync"
-
-	"github.com/gofrs/uuid"
 )
 
 /**
 * Travel down the tree, remember parents, find matching subtree for second employee
  */
-
-//NewManager will generate an ID if `id` is nil.
-// A slice of employees can optionally be passed to this manager
-
-func NewEmployee() Employee {
-	uuid, _ := uuid.NewV4()
-	ID := uuid.String()
-	return Employee{id: ID}
-}
-
-func NewManager(id *string, employees *[]Member) Manager {
-	var ID string
-	if id != nil {
-		ID = *id
-	} else {
-		uuid, _ := uuid.NewV4()
-		ID = uuid.String()
-	}
-	var underlings []Member
-	if employees != nil {
-		underlings = *employees
-	} else {
-		underlings = make([]Member, 0)
-	}
-	return Manager{
-		Employee: Employee{
-			id: ID,
-		},
-		employees: underlings,
-	}
-}
 
 func FindCommonManger(root Manager, e1 Member, e2 Member) Manager {
 	wg := sync.WaitGroup{}
@@ -47,7 +14,7 @@ func FindCommonManger(root Manager, e1 Member, e2 Member) Manager {
 	wg.Add(1)
 	go func() {
 		// Only reads so no race-conditions
-		// Edgecase incase one of the nodes is a root node
+		// Edgecase:  One of the nodes is a root node
 		if e1.GetID() == root.GetID() {
 			results[0] = map[int][]*Manager{0: {&root}}
 		} else {
@@ -79,16 +46,6 @@ func FindCommonManger(root Manager, e1 Member, e2 Member) Manager {
 
 }
 
-func contains(reports []*Manager, target Manager) bool {
-	for _, manager := range reports {
-		if (*manager).GetID() == target.GetID() {
-			return true
-		}
-	}
-
-	return false
-}
-
 // Root node = ceo
 func findByIdDFS(node *Manager, id string, currentDepth int, parents map[int][]*Manager) map[int][]*Manager {
 
@@ -118,4 +75,14 @@ func findByIdDFS(node *Manager, id string, currentDepth int, parents map[int][]*
 
 	}
 	return nil
+}
+
+func contains(reports []*Manager, target Manager) bool {
+	for _, manager := range reports {
+		if (*manager).GetID() == target.GetID() {
+			return true
+		}
+	}
+
+	return false
 }
