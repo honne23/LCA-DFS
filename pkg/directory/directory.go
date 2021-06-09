@@ -10,12 +10,15 @@ import (
 * Travel down the tree, remember parents, find matching subtree for second employee
  */
 
-type Member interface {
-	GetID() string
-}
-
 //NewManager will generate an ID if `id` is nil.
 // A slice of employees can optionally be passed to this manager
+
+func NewEmployee() Employee {
+	uuid, _ := uuid.NewV4()
+	ID := uuid.String()
+	return Employee{id: ID}
+}
+
 func NewManager(id *string, employees *[]Member) Manager {
 	var ID string
 	if id != nil {
@@ -36,42 +39,6 @@ func NewManager(id *string, employees *[]Member) Manager {
 		},
 		employees: underlings,
 	}
-}
-
-func NewEmployee() Employee {
-	uuid, _ := uuid.NewV4()
-	ID := uuid.String()
-	return Employee{id: ID}
-}
-
-type Employee struct {
-	id string
-}
-
-func (e *Employee) GetID() string {
-	return e.id
-}
-
-func (e *Employee) ToManager(employees *[]Member) Manager {
-	id := e.GetID()
-	return NewManager(&id, employees)
-}
-
-type Manager struct {
-	Employee
-	employees []Member
-}
-
-func (m *Manager) GetEmployees() []Member {
-	return m.employees
-}
-func (m *Manager) AddEmployees(employees []Member) {
-	if len(m.employees) == 0 {
-		m.employees = employees
-	} else {
-		m.employees = append(m.employees, employees...)
-	}
-
 }
 
 func FindCommonManger(root Manager, e1 Member, e2 Member) Manager {
