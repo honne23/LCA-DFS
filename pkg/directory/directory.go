@@ -44,7 +44,8 @@ func FindCommonManager(root Manager, e1 Member, e2 Member) Manager {
 
 }
 
-//findByIdDFS Uses a depth first search algorithm to discover all the managers of a given node
+//findByIdDFS Uses a depth first search algorithm to discover all the managers of a given node.
+// This function is tail recursive.
 func findByIdDFS(node *Manager, id string, currentDepth int, parents map[int][]*Manager) map[int][]*Manager {
 
 	for _, child := range node.GetEmployees() {
