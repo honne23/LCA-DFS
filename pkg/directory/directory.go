@@ -1,6 +1,7 @@
 package directory
 
 import (
+	"log"
 	"sync"
 )
 
@@ -40,6 +41,8 @@ func FindCommonManager(root Manager, e1 Member, e2 Member) Manager {
 			}
 		}
 	}
+	log.Printf("Common manager: %s\n\n\n For nodes %s and %s", lowestCommon.GetID(), e1.GetID(), e2.GetID())
+
 	return lowestCommon
 
 }

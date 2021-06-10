@@ -63,16 +63,16 @@ func NewManager(id *string, employees *[]Member) Manager {
 		uuid, _ := uuid.NewV4()
 		ID = uuid.String()
 	}
-	var underlings []Member
+	var children []Member
 	if employees != nil {
-		underlings = *employees
+		children = *employees
 	} else {
-		underlings = make([]Member, 0)
+		children = make([]Member, 0)
 	}
 	return Manager{
 		Employee: Employee{
 			id: ID,
 		},
-		employees: underlings,
+		employees: children,
 	}
 }
