@@ -35,12 +35,9 @@ func main() {
 	log.Printf("productLead1: %s\n\n", productLead1.GetID())
 	log.Printf("productLead2: %s\n\n", productLead2.GetID())
 	log.Printf("juniorDev1: %s\n\n\n\n", juniorDev1.GetID())
-	log.Printf("juniorDe2: %s\n\n\n\n", juniorDev2.GetID())
+	log.Printf("juniorDev2: %s\n\n\n\n", juniorDev2.GetID())
 
-	directory.FindCommonManager(ceo, &juniorDev1, &juniorDev2)
+	lcm := directory.FindCommonManager(ceo, &juniorDev1, &juniorDev2)
+	log.Printf("Lowest common manager: %s", lcm.GetID())
 
 }
-
-/**
-* Adding a child to a node should turn them into a manager
- */
