@@ -69,7 +69,7 @@ func findByIdBFS(node *Manager, id string, currentDepth int, parents map[int][]M
 	for _, child := range node.GetEmployees() {
 		switch child := child.(type) {
 		case *Manager:
-			findByIdDFS(child, id, currentDepth+1, parents)
+			findByIdBFS(child, id, currentDepth+1, parents)
 		default:
 			continue
 		}
