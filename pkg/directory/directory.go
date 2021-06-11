@@ -78,15 +78,6 @@ func findByIdBFS(node *Manager, id string, currentDepth int, parents map[int][]M
 	return parents
 }
 
-func compare(e1 []Member, e2 []Member) *Member {
-	for _, member := range e2 {
-		if containsID(e1, member.GetID()) {
-			return &member
-		}
-	}
-	return nil
-}
-
 func containsID(reports []Member, id string) bool {
 	for _, member := range reports {
 		if member.GetID() == id {
