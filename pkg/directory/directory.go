@@ -2,46 +2,48 @@ package directory
 
 import (
 	"log"
-	"sync"
+	"reflect"
 )
 
 //FindCommonManager will travel down the tree in parallel, cache parents, then find a matching lowest common manager.
-func FindCommonManager(root Manager, e1 Member, e2 Member) Manager {
-	wg := sync.WaitGroup{}
-	results := make([]map[int][]*Manager, 2)
+func FindCommonManager(root Manager, e1 Member, e2 Member) *Manager {
+
+	results := make([]map[int][]Member, 2)
 	// Search for both sub-trees in concurrently
-	wg.Add(1)
-	go func() {
-		// Only reads so no race-conditions
-		// Edgecase:  One of the nodes is a root node
-		if e1.GetID() == root.GetID() {
-			results[0] = map[int][]*Manager{0: {&root}}
-		} else {
-			results[0] = findByIdDFS(&root, e1.GetID(), 0, map[int][]*Manager{})
-		}
 
-		wg.Done()
-	}()
-	wg.Add(1)
-	go func() {
-		if e1.GetID() == root.GetID() {
-			results[1] = map[int][]*Manager{0: {&root}}
-		} else {
-			results[1] = findByIdDFS(&root, e2.GetID(), 0, map[int][]*Manager{})
-		}
-		wg.Done()
-	}()
-	wg.Wait()
-
-	var lowestCommon Manager
-	for depth, parents := range results[0] {
-		for _, node := range parents {
-			if contains(results[1][depth], *node) {
-				lowestCommon = *node
+	if e1.GetID() == root.GetID() {
+		results[0] = map[int][]Member{0: {&root}}
+	} else {
+		results[0] = findByIdBFS(&root, e1.GetID(), 1, map[int][]Member{0: {&root}})
+	}
+	if e2.GetID() == root.GetID() {
+		results[1] = map[int][]Member{0: {&root}}
+	} else {
+		results[1] = findByIdBFS(&root, e2.GetID(), 1, map[int][]Member{0: {&root}})
+	}
+	log.Println(results)
+	minTree := -1
+	if len(results[0]) < len(results[1]) {
+		minTree = 0
+	} else {
+		minTree = 1
+	}
+	lowestCommon := func() *Manager {
+		for depth := len(results[minTree]) - 1; depth > -1; depth-- {
+			for _, member := range results[minTree][depth] {
+				switch member := member.(type) {
+				case *Manager:
+					equal := reflect.DeepEqual(member.GetEmployees(), results[(minTree+1)%2][depth+1])
+					if equal {
+						return member
+					}
+				default:
+					continue
+				}
 			}
 		}
-	}
-	log.Printf("Common manager: %s\n\n\n For nodes %s and %s", lowestCommon.GetID(), e1.GetID(), e2.GetID())
+		return nil
+	}()
 
 	return lowestCommon
 
@@ -49,41 +51,45 @@ func FindCommonManager(root Manager, e1 Member, e2 Member) Manager {
 
 //findByIdDFS Uses a depth first search algorithm to discover all the managers of a given node.
 // This function is tail recursive.
-func findByIdDFS(node *Manager, id string, currentDepth int, parents map[int][]*Manager) map[int][]*Manager {
+func findByIdBFS(node *Manager, id string, currentDepth int, parents map[int][]Member) map[int][]Member {
+	if _, exists := parents[currentDepth]; !exists {
+		parents[currentDepth] = node.GetEmployees()
+	} else {
+		parents[currentDepth] = append(parents[currentDepth], node.GetEmployees()...)
+	}
+	if containsID(node.GetEmployees(), id) {
+		for depth := 0; depth < len(parents); depth++ {
+			for _, child := range parents[depth] {
+				log.Printf("%d | %s", depth, child.GetID())
+			}
+		}
+		return parents
+	}
 
 	for _, child := range node.GetEmployees() {
-		if child.GetID() == id {
-			return parents
-		}
-
 		switch child := child.(type) {
 		case *Manager:
-
-			if len(child.GetEmployees()) < 1 {
-				continue
-			}
-			if _, exists := parents[currentDepth+1]; !exists {
-				parents[currentDepth] = []*Manager{child}
-			} else {
-				if !contains(parents[currentDepth+1], *child) {
-					parents[currentDepth] = append(parents[currentDepth], child)
-				}
-			}
-			return findByIdDFS(child, id, currentDepth+1, parents)
+			findByIdDFS(child, id, currentDepth+1, parents)
 		default:
-			// In case a child is a leaf node, do not explore them
 			continue
-
 		}
 
+	}
+	return parents
+}
+
+func compare(e1 []Member, e2 []Member) *Member {
+	for _, member := range e2 {
+		if containsID(e1, member.GetID()) {
+			return &member
+		}
 	}
 	return nil
 }
 
-//contains is a util function to check if a particular Manager is contained in a slice of Managers
-func contains(reports []*Manager, target Manager) bool {
-	for _, manager := range reports {
-		if (*manager).GetID() == target.GetID() {
+func containsID(reports []Member, id string) bool {
+	for _, member := range reports {
+		if member.GetID() == id {
 			return true
 		}
 	}
