@@ -2,7 +2,6 @@ package directory
 
 import (
 	"log"
-	"reflect"
 	"sync"
 )
 
@@ -18,7 +17,7 @@ func FindCommonManager(root Manager, e1 Member, e2 Member) *Manager {
 		if e1.GetID() == root.GetID() {
 			results[0] = baseCase
 		} else {
-			results[0] = findByIdBFS(&root, e1.GetID(), 1, map[int][]Member{0: {&root}})
+			results[0] = findByIdDFS(&root, e1.GetID(), 1, map[int][]Member{0: {&root}})
 		}
 		wg.Done()
 	}()
@@ -27,7 +26,7 @@ func FindCommonManager(root Manager, e1 Member, e2 Member) *Manager {
 		if e2.GetID() == root.GetID() {
 			results[1] = map[int][]Member{0: {&root}}
 		} else {
-			results[1] = findByIdBFS(&root, e2.GetID(), 1, map[int][]Member{0: {&root}})
+			results[1] = findByIdDFS(&root, e2.GetID(), 1, map[int][]Member{0: {&root}})
 		}
 		wg.Done()
 	}()
@@ -40,46 +39,37 @@ func FindCommonManager(root Manager, e1 Member, e2 Member) *Manager {
 	}
 	lowestCommon := func() *Manager {
 		for depth := len(results[minTree]) - 1; depth > -1; depth-- {
-			for _, member := range results[minTree][depth] {
-				switch member := member.(type) {
-				case *Manager:
-					equal := reflect.DeepEqual(member.GetEmployees(), results[(minTree+1)%2][depth+1])
-					if equal {
-						return member
-					}
-				default:
-					continue
-				}
+			// Given two direct paths for two nodes, find the first node with the same id, this is the common ancestor
+			if results[minTree][depth][0].GetID() == results[(minTree+1)%2][depth][0].GetID() {
+				return (results[minTree][depth][0]).(*Manager)
 			}
 		}
 		return nil
 	}()
-
+	log.Println(results)
 	return lowestCommon
 
 }
 
-//findByIdBFS Uses a breadth first search algorithm to discover all the managers of a given node.
+//findByIdDFS Uses a depth first search algorithm to trace a route to a given node.
 // This function is tail recursive.
-func findByIdBFS(node *Manager, id string, currentDepth int, parents map[int][]Member) map[int][]Member {
-	if _, exists := parents[currentDepth]; !exists {
-		parents[currentDepth] = node.GetEmployees()
-	} else {
-		parents[currentDepth] = append(parents[currentDepth], node.GetEmployees()...)
-	}
-	if containsID(node.GetEmployees(), id) {
-		for depth := 0; depth < len(parents); depth++ {
-			for _, child := range parents[depth] {
-				log.Printf("%d | %s", depth, child.GetID())
-			}
-		}
+func findByIdDFS(node *Manager, id string, currentDepth int, parents map[int][]Member) map[int][]Member {
+
+	if exists, _ := containsID(node.GetEmployees(), id); exists {
+		// Once we have found a node, add it to the end of the queue
+		parents[currentDepth] = []Member{node}
 		return parents
 	}
-
 	for _, child := range node.GetEmployees() {
 		switch child := child.(type) {
 		case *Manager:
-			findByIdBFS(child, id, currentDepth+1, parents)
+			parents = findByIdDFS(child, id, currentDepth+1, parents)
+			if len(parents) > 1 {
+				// Build the rest of the trace from the inside out
+				parents[currentDepth] = []Member{node}
+				return parents
+			}
+
 		default:
 			continue
 		}
@@ -88,12 +78,12 @@ func findByIdBFS(node *Manager, id string, currentDepth int, parents map[int][]M
 	return parents
 }
 
-func containsID(reports []Member, id string) bool {
+func containsID(reports []Member, id string) (bool, *Member) {
 	for _, member := range reports {
 		if member.GetID() == id {
-			return true
+			return true, &member
 		}
 	}
 
-	return false
+	return false, nil
 }

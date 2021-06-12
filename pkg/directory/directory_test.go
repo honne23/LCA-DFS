@@ -165,6 +165,64 @@ func TestUnbalancedTree(t *testing.T) {
 }
 
 /**
+*                                         ┌──────────────┐
+                                          │              │
+                                          │              │
+                                          │     CEO      │
+                                          │              │
+                                          │              │
+                                          └──┬────────┬──┘
+                                             │        │
+                                             │        │
+                                             │        │
+                     ┌────────────┐   ◄──────┘        └──────►  ┌───────────┐
+                     │            │                             │           │
+                     │            │                             │           │
+                     │    CFO     │                             │   CTO     │
+                     │            │                             │           │
+                     │            │                             │           │
+                     └──┬────┬────┘                             └───┬────┬──┘
+                        │    │                                      │    │
+                        │    │                                      │    │
+                        │    │                                      │    │
+┌────────────┐          │    │     ┌──────────┐                     │    │
+│            │ ◄────────┘    └────►│          │                     │    │
+│            │                     │          │     ┌─────────┐◄────┘    └────► ┌────────────┐
+│   AC1      │                     │   AC2    │     │         │                 │            │
+│            │                     │          │     │         │                 │            │
+│            │                     │          │     │  PM1    │                 │    PM2     │
+└────────────┘                     └──────────┘     │         │                 │            │
+                                                    │         │                 │            │
+                                                    └───┬─────┘                 └───┬──┬─────┘
+
+*/
+func TestBalancedTree(t *testing.T) {
+	// Should resolve to the CEO
+	cfo := NewManager(nil, nil)
+	cto := NewManager(nil, nil)
+	ceoEmployees := []Member{&cfo, &cto}
+	ceo := NewManager(nil, &ceoEmployees)
+
+	productLead1 := NewManager(nil, nil)
+	productLead2 := NewManager(nil, nil)
+	ac1 := NewManager(nil, nil)
+	ac2 := NewManager(nil, nil)
+	cto.AddEmployees([]Member{&productLead1, &productLead2})
+	cfo.AddEmployees([]Member{&ac1, &ac2})
+	log.Printf("CEO: %s\n\n", ceo.GetID())
+	log.Printf("CFO: %s\n\n", cfo.GetID())
+	log.Printf("CTO: %s\n\n", cto.GetID())
+	log.Printf("ac1: %s\n\n", ac1.GetID())
+	log.Printf("ac2: %s\n\n", ac2.GetID())
+	log.Printf("productLead1: %s\n\n", productLead1.GetID())
+	log.Printf("productLead2: %s\n\n", productLead2.GetID())
+	lcm := FindCommonManager(ceo, &ac2, &productLead1)
+	if lcm.GetID() != ceo.GetID() {
+		t.Errorf("Failed Common Manager: Found %s, expected %s", lcm.GetID(), ceo.GetID())
+	}
+}
+
+/**
 *
 		┌──────────────┐
 		│              │
