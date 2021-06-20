@@ -35,6 +35,18 @@ func findByIdDFS(node *Manager, id string, currentDepth int, parents map[int][]M
 ```
 
 #### Finding the lowest common ancestor just searches for the first ID match between two stacks
+```go
+lowestCommon := func() *Manager {
+		for depth := len(results[minTree]) - 1; depth > -1; depth-- {
+			// Given two direct paths for two nodes, find the first node with the same id, this is the common ancestor
+			if results[minTree][depth][0].GetID() == results[(minTree+1)%2][depth][0].GetID() {
+				return (results[minTree][depth][0]).(*Manager)
+			}
+		}
+		return nil
+	}()
+
+```
 
 #### To build:
 ```bash
